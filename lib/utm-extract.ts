@@ -32,6 +32,7 @@ function fromNoteAttributes(noteAttributes: NoteAttribute[] | undefined) {
     utmTerm: map.get("utm_term") ?? null,
     utmContent: map.get("utm_content") ?? null,
     landingPage: map.get("landing_page") ?? null,
+    fromParam: map.get("from") ?? null,
   };
 }
 
@@ -51,6 +52,7 @@ function fromLandingSite(landingSite: string | null | undefined) {
       utmTerm: params.get("utm_term"),
       utmContent: params.get("utm_content"),
       landingPage: landingSite,
+      fromParam: params.get("from"),
     };
   } catch {
     return null;
@@ -64,12 +66,14 @@ export function extractUtm(order: {
 }): ExtractedUtm {
   const fromCart = fromNoteAttributes(order.note_attributes);
   if (fromCart) {
-    return { ...fromCart, referrer: order.referring_site ?? null, source: "cart_attr" };
+    const { fromParam, ...utm } = fromCart;
+    return { ...utm, referrer: fromParam ?? order.referring_site ?? null, source: "cart_attr" };
   }
 
   const fromLanding = fromLandingSite(order.landing_site);
   if (fromLanding) {
-    return { ...fromLanding, referrer: order.referring_site ?? null, source: "landing_site_fallback" };
+    const { fromParam, ...utm } = fromLanding;
+    return { ...utm, referrer: fromParam ?? order.referring_site ?? null, source: "landing_site_fallback" };
   }
 
   return {

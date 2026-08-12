@@ -9,7 +9,7 @@
  * de </head>.
  */
 (function () {
-  var UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"];
+  var UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "from"];
   var COOKIE_NAME = "utm_attribution";
   var COOKIE_DAYS = 30;
 
