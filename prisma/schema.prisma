@@ -9,6 +9,11 @@ datasource db {
 
 // --- Auth (NextAuth / Auth.js) ---
 
+enum Role {
+  AGENCY_ADMIN
+  CLIENT
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -16,6 +21,9 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String? // hashed, used by Credentials provider
+  role          Role      @default(CLIENT)
+  storeId       String?
+  store         Store?    @relation(fields: [storeId], references: [id])
   accounts      Account[]
   sessions      Session[]
 }
@@ -55,11 +63,24 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// --- Domain: orders + UTM attribution ---
+// --- Domain: stores (clientes da agência) + orders + UTM attribution ---
+
+model Store {
+  id            String   @id @default(cuid())
+  name          String
+  shopifyDomain String   @unique // ex: minha-loja.myshopify.com
+  webhookSecret String
+  createdAt     DateTime @default(now())
+
+  users  User[]
+  orders Order[]
+}
 
 model Order {
   id              String   @id @default(cuid())
-  shopifyOrderId  String   @unique
+  storeId         String
+  store           Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  shopifyOrderId  String
   orderNumber     String
   totalPrice      Float
   currency        String
@@ -69,7 +90,9 @@ model Order {
 
   utm UtmAttribution?
 
+  @@unique([storeId, shopifyOrderId])
   @@index([createdAt])
+  @@index([storeId])
 }
 
 model UtmAttribution {

@@ -3,17 +3,20 @@ export function Filters({
   to,
   utmSource,
   sources,
+  storeId,
 }: {
   from: string;
   to: string;
   utmSource: string;
   sources: string[];
+  storeId?: string;
 }) {
   return (
     <form
       className="flex flex-wrap items-end gap-3 rounded-xl border border-white/10 bg-[var(--chart-surface)] p-4"
       method="get"
     >
+      {storeId && <input type="hidden" name="storeId" value={storeId} />}
       <div className="flex flex-col gap-1">
         <label className="text-xs text-[var(--text-secondary)]" htmlFor="from">
           De

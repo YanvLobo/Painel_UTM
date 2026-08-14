@@ -19,8 +19,18 @@ type ShopifyOrder = {
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
   const hmacHeader = req.headers.get("x-shopify-hmac-sha256");
+  const shopDomain = req.headers.get("x-shopify-shop-domain");
 
-  if (!verifyShopifyHmac(rawBody, hmacHeader)) {
+  if (!shopDomain) {
+    return NextResponse.json({ error: "missing shop domain" }, { status: 400 });
+  }
+
+  const store = await prisma.store.findUnique({ where: { shopifyDomain: shopDomain } });
+  if (!store) {
+    return NextResponse.json({ error: "unknown store" }, { status: 404 });
+  }
+
+  if (!verifyShopifyHmac(rawBody, hmacHeader, store.webhookSecret)) {
     return NextResponse.json({ error: "invalid signature" }, { status: 401 });
   }
 
@@ -28,8 +38,9 @@ export async function POST(req: NextRequest) {
   const utm = extractUtm(order);
 
   await prisma.order.upsert({
-    where: { shopifyOrderId: String(order.id) },
+    where: { storeId_shopifyOrderId: { storeId: store.id, shopifyOrderId: String(order.id) } },
     create: {
+      storeId: store.id,
       shopifyOrderId: String(order.id),
       orderNumber: String(order.order_number),
       totalPrice: parseFloat(order.total_price),

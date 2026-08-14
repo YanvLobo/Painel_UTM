@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 export type DashboardFilters = {
+  storeId: string;
   from?: Date;
   to?: Date;
   utmSource?: string;
@@ -8,6 +9,7 @@ export type DashboardFilters = {
 
 function whereClause(filters: DashboardFilters) {
   return {
+    storeId: filters.storeId,
     createdAt: {
       gte: filters.from,
       lte: filters.to,
@@ -85,11 +87,15 @@ export async function getOrders(filters: DashboardFilters) {
   }));
 }
 
-export async function getDistinctSources() {
+export async function getDistinctSources(storeId: string) {
   const rows = await prisma.utmAttribution.findMany({
-    where: { utmSource: { not: null } },
+    where: { utmSource: { not: null }, order: { storeId } },
     select: { utmSource: true },
     distinct: ["utmSource"],
   });
   return rows.map((r) => r.utmSource as string).sort();
+}
+
+export async function getStoresForAdmin() {
+  return prisma.store.findMany({ orderBy: { name: "asc" } });
 }
