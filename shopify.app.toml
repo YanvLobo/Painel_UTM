@@ -1,10 +1,13 @@
 client_id = "617a7dbdcbf7a5f4b716cbe32d18d9b2"
 name = "Painel UTM_2"
 application_url = "https://painel-utm.vercel.app"
-embedded = true
+embedded = false
 
 [access_scopes]
 scopes = "read_orders"
+
+[auth]
+redirect_urls = ["https://painel-utm.vercel.app/api/auth/callback"]
 
 [webhooks]
 api_version = "2026-07"
